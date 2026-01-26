@@ -1,5 +1,5 @@
 import { ActionSet } from "./lib/actions.js";
-import { Model, ModelData } from "./lib/models.js";
+import { Model, ModelResponse } from "./lib/models.js";
 
 
 interface AppAction {
@@ -26,7 +26,7 @@ interface UserModelArgs {
 }
 
 
-const userModelData: ModelData<User, AppAction> = {
+const userModelData: ModelResponse<User, AppAction> = {
   data: {
     name: {
       first: {
