@@ -1,0 +1,44 @@
+{
+  "name": "<project_name>",
+  "version": "1.0.0",
+  "description": "<project_description>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "dev": "tsx --watch src/index.ts",
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PaxtonTerryDev/<project_repo_name>.git"
+  },
+  "author": "PaxtonTerryDev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PaxtonTerryDev/<project_repo_name>/issues"
+  },
+  "homepage": "https://github.com/PaxtonTerryDev/<project_repo_name>#readme",
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@paxtonterrydev/quicklog": "^1.0.2",
+    "dotenv": "^17.2.3"
+  }
+}
