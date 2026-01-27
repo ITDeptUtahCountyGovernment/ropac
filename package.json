@@ -19,8 +19,7 @@
   ],
   "scripts": {
     "dev": "tsx --watch src/index.ts",
-    "build": "tsc",
-    "prepare": "npm run build"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
