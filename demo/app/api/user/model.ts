@@ -1,14 +1,27 @@
-import { users } from '@/data/users';
-import { Model } from '@/lib/models'
+import { users, userRoles } from '@/data/users';
+import { applySingleRolePermissionsMap, FieldPermissions, Model, newRolePermissionsMap } from '@/lib/models'
 import { Action } from '@/types/action'
-import { FetchUserProfileArgs, UserProfile } from '@/types/user'
-const userModel: Model<UserProfile, FetchUserProfileArgs, Action, RoleAction> = {
+import { FetchUserProfileArgs, Role, UserProfile } from '@/types/user'
+import { getDefaultRolePermissions } from '@/utils/get-default-role-permissions';
+
+const userModel: Model<UserProfile, FetchUserProfileArgs, Action, Role> = {
   endpoints: {
     get: {},
     patch: {},
   },
 
-  async getData(modelArgs, ...args) {
-   const user = users.find(u => u.id === modelArgs?.userId);
+  async getData(modelArgs) {
+    const user = users.find(u => u.id === modelArgs?.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  },
+
+  async getPermissions(data) {
+    const defaultPermissions = getDefaultRolePermissions();
+    return applySingleRolePermissionsMap(data, defaultPermissions);
   },
 }
+
+export { userModel }
