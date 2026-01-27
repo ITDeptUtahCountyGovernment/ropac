@@ -2,7 +2,7 @@ import { PermissionShorthand } from "./permissions.js";
 import { ModelAPIRequest } from "./model-api-request.js";
 import { Permission } from "./permissions.js";
 import { MappedObject } from "./utils/types/mapped-object.js";
-import { objectMap } from "./utils/object-operators.js";
+import { objectJoin, objectMap } from "./utils/object-operators.js";
 
 type FieldView = {
   value: any | any[];
@@ -57,8 +57,18 @@ export class ModelInstance<Data, Args, Action, Role, AdditionalArgs = null> {
     this.model = model;
   }
 
-  createController(): Controller<Data, Args, Action, Role, AdditionalArgs> {
-    const { getAdditionalArgs, getData, getPermissions, getActions } = this.model
+  createController(): ControllerInstance<Data, Args, Action, Role, AdditionalArgs> {
+    const { getAdditionalArgs, getData, getPermissions, getActions } = this.model;
+    return new ControllerInstance({
+      ...(getAdditionalArgs && { getAdditionalArgs }),
+      getData,
+      getPermissions,
+      ...(getActions && { getActions }),
+    });
+  }
+
+  createView(): View<Data, Args, Action, Role> {
+    return { endpoints: this.model.endpoints };
   }
 }
 
@@ -89,8 +99,10 @@ export class ControllerInstance<Data, Args, Action, Role, AdditionalArgs = null>
     this.controller = controller;
   }
 
-  handleRequest(data: Data): Promise<ModelResponse<Data, Action>> {
-    throw new Error("Method not implemented")
+  async handleRequest(args?: Args): Promise<ModelResponse<Data, Action>> {
+    const data = await this.controller.getData(args);
+    const permissions = await this.controller.getPermissions(data, args);
+    return objectJoin(data as object, "data", permissions, "permissions") as ModelResponse<Data, Action>;
   }
 
   sanitize(response: ModelResponse<Data, Action>) {

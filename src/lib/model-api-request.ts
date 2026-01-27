@@ -6,7 +6,6 @@ type ValidRequestHeaders = Record<keyof IncomingHttpHeaders, string>;
 interface RequestBody<Data> {
   body?: keyof Data[];
 }
-
 export interface ModelAPIRequest<Data, Args> {
   url?: string;
   headers?: ValidRequestHeaders;
