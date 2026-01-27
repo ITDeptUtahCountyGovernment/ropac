@@ -11,18 +11,25 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { users } from "@/data/users"
-import { UserProfile } from "@/types/user"
+import { View } from "@/lib/models"
+import usePermissions from "@/lib/use-permissions"
+import { Action } from "@/types/action"
+import { Role } from "@/types/role"
+import { FetchUserProfileArgs, UserProfile } from "@/types/user"
 import { useState } from "react"
 
-interface UserProfileCardProps {
+interface UserProfileCardProps<UserProfile, FetchUserProfileArgs, Action, Role> {
+  view: View<UserProfile, FetchUserProfileArgs, Action, Role>,
   userId: string;
 }
 
-export function UserProfileCard({ userId }: UserProfileCardProps) {
+export function UserProfileCard<UserProfile, FetchUserProfileArgs, Action, Role> ({ view, userId }: UserProfileCardProps<UserProfile, FetchUserProfileArgs, Action, Role>) {
   const [user, setUser] = useState<UserProfile>(users[0])
   const [canEdit, setCanEdit] = useState<boolean>(true);
   const [hasEditPermission, setHasEditPermission] = useState<boolean>(true);
   const [editMode, setEditMode] = useState<boolean>(false);
+
+  const { data } = usePermissions<UserProfile, FetchUserProfileArgs, Action, Role>({ view, args: { userId }})
 
   function toggleEditMode() {
     setEditMode(!editMode);
