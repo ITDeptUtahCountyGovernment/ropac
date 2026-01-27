@@ -39,15 +39,15 @@ const userModelData: ModelResponse<User, AppAction> = {
       }
     },
     phone: {
-      value: undefined,
+      value: "801-857-8598",
       permissions: []
     },
     age: {
-      value: undefined,
+      value: 21,
       permissions: []
     },
   },
-  actions: new ActionSet<AppAction>({ name: "CAN_DELETE" })
+  actions: [{  name: "CAN_DELETE" }]
 }
 
 const userModel: Model<User, UserModelArgs, AppAction, AppRole> = {

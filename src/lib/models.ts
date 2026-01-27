@@ -1,67 +1,90 @@
-import { Action, ActionSet } from "./actions.js";
+import { TransferListItem } from "worker_threads";
+import { PermissionShorthand } from "../../demo/lib/permissions.js";
 import { ModelAPIRequest } from "./model-api-request.js";
 import { Permission } from "./permissions.js";
 import { MappedObject } from "./utils/types/mapped-object.js";
 
-type Value = {
+type FieldView = {
   value: any | any[];
   permissions: Permission[];
 }
 
-type ResponseValues<BaseObj> = MappedObject<BaseObj, Value>
+/** All keys of the provided base T with an associated value */
+type FieldValues<T> = MappedObject<T, any | any[]>
 
-export interface ModelResponse<Data, ActionType extends Action> {
-  data: ResponseValues<Data>,
-  actions: ActionSet<ActionType>
+/** A map of Roles correlated to their respective permissions.  Used mainly in FieldPermissions, to map all the permissions for a particular field. */
+type RolePermissionsMap<Role> = Map<Role, Permission[] | PermissionShorthand>
+
+/** All keys of the provided base T with an associated RolePermissionMap */
+type FieldPermissions<BaseObj, Role> = MappedObject<BaseObj, RolePermissionsMap<Role>>
+
+/** All keys of the provided Base T with an associated FieldView object. Is the `data` property of the ModelResponse object */
+type FieldViews<T> = MappedObject<T, FieldView>;
+
+export interface ModelResponse<Data, Action> {
+  data: FieldViews<Data>,
+  actions: Action[]
 }
 
 // Provide the definitions needed to create both ModelControllers and ModelViews.
-export interface Model<Data, Args, Action, Role> extends Controller<Data, Args, Action, Role>, View<Data, Args, Action, Role> {
-  endpoints: ModelAPIRequest<Data, Args>;
-}
+export interface Model<Data, Args, Action, Role, AdditionalArgs = null> extends Controller<Data, Args, Action, Role, AdditionalArgs>, View<Data, Args, Action, Role> {}
 
-export class ModelInstance<Data, Args, Action, Role> {
-  model: Model<Data, Args, Action, Role>;
-  constructor(model: Model<Data, Args, Action, Role>) {
+export class ModelInstance<Data, Args, Action, Role, AdditionalArgs = null> {
+  model: Model<Data, Args, Action, Role, AdditionalArgs>;
+  constructor(model: Model<Data, Args, Action, Role, AdditionalArgs>) {
     this.model = model;
+  }
+
+  createController(): Controller<Data, Args, Action, Role, AdditionalArgs> {
+    const { getAdditionalArgs, getData, getPermissions, getActions } = this.model
+    return {
+      getAdditionalArgs,
+      getData,
+      getPermissions,
+      getActions
+    }
   }
 }
 
 
 // Used on the server to fetch model data and permissions, and map them together.
 // Responds to requests from a corresponding ModelView through the React hook.
-export interface Controller<Data, Args, ActionType extends Action, Role> {
-// TODO: Would like to figure out a way to safely type the additionally provided arguments in these methods, if possible.
-  
+export interface Controller<Data, Args, Action, Role, AdditionalArgs = null> {
+
+  /** Optionally get additional args for data and permission mapping. */
+  getAdditionalArgs?: (modelArgs?: Args) => Promise<AdditionalArgs>;
+
   /** Should fetch the full data model values from storage */
-  getData<T>(modelArgs?: Args, ...args: T[]): Data;
+  getData: (modelArgs?: Args, ...args: AdditionalArgs[]) => Promise<Data>;
   
   /** 
   * Should get the relevant permissions for each data field 
   * Is provided with the data returned from getData if data is required to accurately describe permissions 
   * */
-  getPermissions<T>(data: Data, modelArgs?: Args, args?: T[]): Role[];
+  getPermissions: (data: Data, modelArgs?: Args, args?: AdditionalArgs[]) => Promise<FieldPermissions<Data, Role>>;
 
   /** Should get all valid actions to be sent to the client */
-  getActions?: (modelArgs?: Args, ...args: unknown[]) => ActionType[];
+  getActions?: (modelArgs?: Args, ...args: AdditionalArgs[]) => Promise<Action[]>;
 }
 
-export class ControllerInstance<Data, Args, ActionType extends Action, Role> {
-  controller: Model<Data, Args, ActionType, Role>;
+export class ControllerInstance<Data, Args, Action, Role> {
+  controller: Model<Data, Args, Action, Role>;
 
-  constructor(controller: Model<Data, Args, ActionType, Role>) {
+  constructor(controller: Model<Data, Args, Action, Role>) {
     this.controller = controller;
   }
 
-  handleRequest(data: Data): Promise<ModelResponse<Data, ActionType>> {
-    throw new Error("Method not implemented");
+  handleRequest(data: Data): Promise<ModelResponse<Data, Action>> {
+    throw new Error("Method not implemented")
   }
 
-  sanitize(response: ModelResponse<Data, ActionType>): ModelResponse<Data, ActionType> {
-    throw new Error("Method not implemented");
+  sanitize(response: ModelResponse<Data, Action>) {
+    throw new Error("Method not Implemented")
   }
 }
 
 // Serializable -> This is functionally a container that is used to provide the necessary data to the usePermissions hook to build a View object on the client.
-export interface View<Data, Args, Action, Role> { }
+export interface View<Data, Args, Action, Role> {
+  endpoints: ModelAPIRequest<Data, Args>;
+}
 
