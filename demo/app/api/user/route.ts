@@ -11,7 +11,5 @@ export async function GET(request: NextRequest) {
   
   const res = await controller.handleRequest({ userId: id })
 
-  return NextResponse.json({
-    model: res,
-  })
+  return NextResponse.json(res)
 }

@@ -26,6 +26,7 @@ export interface UserProfile {
 
 export interface FetchUserProfileArgs {
   userId: string;
+  viewerId?: string;
 }
 
 export type Role = 'admin' | 'team_lead' | 'employee' | 'public';

@@ -4,7 +4,7 @@ import { applySingleRolePermissionsMap, Model } from '../../../lib/models'
 import { Action } from '../../../types/action'
 import { FetchUserProfileArgs, Role, UserProfile } from '../../../types/user'
 import { getDefaultRolePermissions } from '../../../utils/get-default-role-permissions';
-import { updatePermissionField } from '@/lib/models'
+
 const userModel: Model<UserProfile, FetchUserProfileArgs, Action, Role> = {
     endpoints: {
         url: "/api/user",
@@ -25,23 +25,20 @@ const userModel: Model<UserProfile, FetchUserProfileArgs, Action, Role> = {
         return applySingleRolePermissionsMap(data, defaultPermissions);
     },
 
-    async applyPermissions(data, permissions, roles, modelArgs) {
-      updatePermissionField(permissions, "name", "CRUD");
-      return permissions;
-    },
-
     getClientRoles(modelArgs?: FetchUserProfileArgs): Role[] {
-        const userId = modelArgs?.userId;
-        if (!userId) throw new Error("No userId provided");
-        return getUserRoles(userId);
+        const viewerId = modelArgs?.viewerId ?? modelArgs?.userId;
+        if (!viewerId) throw new Error("No viewerId or userId provided");
+        try {
+            return getUserRoles(viewerId);
+        } catch {
+            return ['public'];
+        }
     },
 
-    async getActions(modelArgs?: FetchUserProfileArgs): Promise<Action[]> {
-        const roles = await this.getClientRoles(modelArgs);
+    getActions(modelArgs?: FetchUserProfileArgs): Action[] {
+        const roles = this.getClientRoles(modelArgs);
         return getActionsForRoles(roles);
     },
-
-    
 }
 
 export { userModel }
