@@ -6,12 +6,14 @@ export const defaultRolePermissions: Record<Role, PermissionShorthand> = {
   "admin": "CRUD",
   "team_lead": "RU",
   "employee": "R",
+  "public": "",
 }
+
 
 export const userRoles: UserRole[] = [
   { userId: "1", roles: ["admin", "employee"] },
   { userId: "2", roles: ["team_lead", "employee"] },
-  { userId: "3", roles: ["employee"] },
+  { userId: "3", roles: ["public"] },
   { userId: "4", roles: ["team_lead", "employee"] },
 ];
 

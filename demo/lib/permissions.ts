@@ -26,3 +26,8 @@ export function parseShorthandPermissions(sh: PermissionShorthand): Permission[]
   }
   return p;
 }
+
+export function expandPermissions(permissions: Permission[] | PermissionShorthand): Permission[] {
+  if (Array.isArray(permissions)) return permissions;
+  else return parseShorthandPermissions(permissions);
+}

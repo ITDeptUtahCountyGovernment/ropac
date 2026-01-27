@@ -8,9 +8,10 @@ export async function GET(request: NextRequest) {
 
   const controller = new ModelInstance(userModel).createController();
   if (!id) return NextResponse.error();
+  
   const res = await controller.handleRequest({ userId: id })
+
   return NextResponse.json({
     model: res,
   })
-
 }
