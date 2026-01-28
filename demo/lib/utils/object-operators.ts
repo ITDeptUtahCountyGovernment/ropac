@@ -1,5 +1,6 @@
 import { MappedObject } from "./types/mapped-object";
 
+// WARN: We are using these alot, but they are relying heavily on assertions, and we are losing a lot of compiler safety.  Need a better way to do this, or do it more safely.``
 function isField(value: unknown): boolean {
   return isObject(value) && 'value' in (value as object) && 'permissions' in (value as object);
 }
