@@ -191,7 +191,7 @@ export class ControllerInstance<Data, Args, Action, Role> {
       return actions;
     }
   }
-
+  
   async handleRequest(args?: Args): Promise<ModelResponse<Data, Action>> {
     const data = await this.controller.getData(args);
 
@@ -199,8 +199,8 @@ export class ControllerInstance<Data, Args, Action, Role> {
     const appliedPermissions = await this.handlePermissions(data, roles, args);
     const appliedActions = await this.handleActions(data, appliedPermissions, args);
     const composite = this.createModelComposite(data, appliedPermissions, appliedActions)
-    const response = this.createResponse(composite);
-    
+    const response = this.createModelResponse(composite);
+
     return response;
   }
 
@@ -245,49 +245,26 @@ export class ControllerInstance<Data, Args, Action, Role> {
     return composite;
   }
 
-  private createResponse(composite: ModelComposite<Data, Action>): ModelResponse<Data, Action> {
+  private createModelResponse(composite: ModelComposite<Data, Action>): ModelResponse<Data, Action> {
     return this.sanitize(composite)
   }
 
   async handleUpdate(updateData: Partial<Data>, args?: Args): Promise<ModelResponse<Data, Action>> {
     const currentData = await this.controller.getData(args);
-
-    const fetchedRoles = await this.controller.getClientRoles(args);
-    const roles = this.controller.applyClientRoles
-      ? await this.controller.applyClientRoles(currentData, fetchedRoles, args)
-      : fetchedRoles;
-    const permissions = await this.controller.getPermissions(currentData, args);
-
-    const defaultApplied = this.defaultApplyPermissions(permissions, roles);
-    const appliedPermissions = this.controller.applyPermissions
-      ? await this.controller.applyPermissions(currentData, defaultApplied, roles, args)
-      : defaultApplied;
+    const roles = await this.handleRoles(currentData, args);
+    const appliedPermissions = await this.handlePermissions(currentData, roles);
 
     this.validateUpdatePermissions(updateData, appliedPermissions);
 
     const updatedData = await this.controller.updateData(updateData, args);
+    const updatedPermissions = await this.handlePermissions(updatedData, roles, args);
+    const updatedActions = await this.handleActions(updatedData, updatedPermissions, args);
+    const composite = this.createModelComposite(updatedData, updatedPermissions, updatedActions);
 
-    const newPermissions = await this.controller.getPermissions(updatedData, args);
-    const newDefaultApplied = this.defaultApplyPermissions(newPermissions, roles);
-    const newAppliedPermissions = this.controller.applyPermissions
-      ? await this.controller.applyPermissions(updatedData, newDefaultApplied, roles, args)
-      : newDefaultApplied;
-
-    const actions = this.controller.getActions
-      ? await this.controller.getActions(args)
-      : [];
-    const finalActions = this.controller.applyActions
-      ? await this.controller.applyActions(updatedData, newAppliedPermissions, actions)
-      : this.defaultApplyActions(actions);
-
-    const composite = {
-      data: objectJoin(updatedData as object, "value", newAppliedPermissions, "permissions"),
-      actions: finalActions,
-    } as ModelComposite<Data, Action>;
-
-    return this.sanitize(composite);
+    return this.createModelResponse(composite);
   }
 
+  // TODO: Should update this to queue update errors and return them, rather than throwing immediately.
   private validateUpdatePermissions(
     updateData: Partial<Data>,
     appliedPermissions: AppliedPermissions<Data>,
