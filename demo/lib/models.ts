@@ -330,7 +330,17 @@ export class ControllerInstance<Data, Args, Action, Role> {
 }
 
 export interface ViewConfig {
+  /** 
+  * Should the client update the ui state BEFORE receiving the update result?
+  *
+  * If true, it is recommended to also set `enforceClientPermissions` to true
+  */
   optimisticUpdates?: boolean;
+  /** 
+  * Should the client do a permission check before allowing a client update?
+  *
+  * Note: permission and security checks will always be enforced in the Model's `Controller` on the api.
+  */
   enforceClientPermissions?: boolean;
 }
 
